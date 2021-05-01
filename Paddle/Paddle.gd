@@ -50,7 +50,11 @@ func _physics_process(_delta):
 	position.x += s*t
 
 	if HUD.paddle_stretch:
-		pass
+		var w = 1 + (distort.x * p)
+		var h = 1 - (1/distort.y * p)
+		change_size(w,h)
+		color.s = color_s * (1-p)
+		update_color()
 
 
 func start_paddle():

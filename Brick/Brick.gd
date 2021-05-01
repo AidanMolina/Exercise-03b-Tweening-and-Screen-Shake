@@ -34,13 +34,17 @@ func _ready():
 	update_color()
 
 func _process(_delta):
-	if dying and not $Particles2D.emitting:
+	if dying and not $Particles2D.emitting and not $Tween.is_active():
 		queue_free()
 
 
 func start_brick():
 	if HUD.blocks_appear:
-		pass
+		var target_pos = position
+		var appear_duration = randf()*appear_speed + 1.0
+		position.y = -100
+		$Tween.interpolate_property(self, "position", position, target_pos, appear_duration, Tween.TRANS_ELASTIC, Tween.EASE_IN_OUT)
+		$Tween.start()
 	else:
 		position = Vector2(position.x,target_y)
 
@@ -68,6 +72,26 @@ func _on_HUD_changed():
 
 func die():
 	dying = true
-	$Color.color.a = 0
+	var target_color = $Color.color.darkened(0.75)
+	target_color.a = 0
+	var fall_duration = randf()*fall_speed + 1
+	var rotate_amount = (randi() % 1440) - 720
+
+	if HUD.blocks_fall:
+		var target_pos = position
+		target_pos.y = 1000
+		$Tween.interpolate_property(self, "position", position, target_pos, fall_duration, Tween.TRANS_CUBIC, Tween.EASE_IN)
+		$Tween.start()
+	if HUD.blocks_fade:
+		$Tween.interpolate_property($Color, "color", $Color.color, target_color, fall_duration-0.25, Tween.TRANS_EXPO, Tween.EASE_IN)
+		$Tween.start()
+	if HUD.blocks_rotate:
+		$Tween.interpolate_property(self, "rotation_degrees", rotation_degrees, rotate_amount, fall_duration-0.25, Tween.TRANS_QUINT, Tween.EASE_IN)
+		$Tween.start()
+	if not HUD.blocks_fade and not HUD.blocks_fall and not HUD.blocks_rotate:
+		$Color.color = target_color
+	if not HUD.blocks_rotate:
+		rotation = 0
+
 	collision_layer = 0
 	collision_mask = 0
